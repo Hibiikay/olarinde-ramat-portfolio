@@ -205,3 +205,5 @@ function init() {
   loadSkills();
   loadExperience();
 }
+
+init();
