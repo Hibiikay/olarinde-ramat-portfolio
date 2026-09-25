@@ -185,14 +185,19 @@ function init() {
   setupModal();
 
   const y = $('#year');
-
   if (y) {
     y.textContent = new Date().getFullYear();
   }
 
+  // Always trigger the loaders
   loadProjects();
   loadSkills();
   loadExperience();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// Handle both standard loads and cached/deferred DOM loads
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
