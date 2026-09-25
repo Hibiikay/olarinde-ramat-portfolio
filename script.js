@@ -6,11 +6,20 @@ const $$ = (s) => document.querySelectorAll(s);
 function escapeHTML(value='') { const d=document.createElement('div'); d.textContent=value; return d.innerHTML; }
 function imageExists(url){ return url && /^https?:\/\//i.test(url); }
 
-async function getData(action){
+async function getData(action) {
   const res = await fetch(`${API_URL}?action=${action}`);
+
+  if (!res.ok) {
+    throw new Error(`API request failed: ${res.status}`);
+  }
+
   const json = await res.json();
-  if(!json.success) throw new Error(json.error || 'API error');
-  return json.data || [];
+
+  if (!json.success) {
+    throw new Error(json.error || "API error");
+  }
+
+  return Array.isArray(json.data) ? json.data : [];
 }
 
 function setupMenu(){
@@ -68,16 +77,89 @@ function openProject(p){
 }
 function setupModal(){const m=$('#projectModal'),c=$('#closeModal'),o=m?.querySelector('.modal-overlay'); if(!m)return; [c,o].forEach(x=>x?.addEventListener('click',()=>{m.classList.remove('show');m.setAttribute('aria-hidden','true')}));}
 
-async function loadSkills(){
-  const grid=$('#skillsGrid'); if(!grid)return;
-  try{const skills=await getData('skills'); const count=$('#skillCount');if(count)count.textContent=skills.length; grid.innerHTML=skills.map(s=>`<div class="skill-card"><h3>${escapeHTML(s.Skill||'')}</h3><p>${escapeHTML(s.Description||s.Category||'')}</p></div>`).join('')||'<p class="loading">No skills added yet.</p>';}
-  catch(e){grid.innerHTML='<p class="loading">Unable to load skills right now.</p>';console.error(e)}
+async function loadSkills() {
+  const grid = $('#skillsGrid');
+  if (!grid) return;
+
+  try {
+    const skills = await getData('skills');
+
+    const count = $('#skillCount');
+
+    if (count) {
+      count.textContent = skills.length;
+    }
+
+    if (skills.length === 0) {
+      grid.innerHTML = '<p class="loading">No skills added yet.</p>';
+      return;
+    }
+
+    grid.innerHTML = skills.map(skill => `
+      <div class="skill-card">
+        <h3>${escapeHTML(skill.Skill || '')}</h3>
+
+        <p>
+          ${escapeHTML(
+            skill.Description ||
+            skill.Category ||
+            ''
+          )}
+        </p>
+      </div>
+    `).join('');
+
+  } catch (error) {
+    console.error('Skills error:', error);
+
+    grid.innerHTML =
+      '<p class="loading">Unable to load skills right now.</p>';
+  }
 }
 
-async function loadExperience(){
-  const list=$('#experienceList'); if(!list)return;
-  try{const items=await getData('experience'); list.innerHTML=items.map(e=>`<article class="experience-card"><div class="experience-meta">${escapeHTML(e['Start Date']||'')} – ${escapeHTML(e['End Date']||'Present')}</div><h3>${escapeHTML(e.Role||'')}</h3><strong>${escapeHTML(e.Organization||'')}</strong><p>${escapeHTML(e.Description||'')}</p></article>`).join('')||'<p class="loading">No experience added yet.</p>';}
-  catch(e){list.innerHTML='<p class="loading">Unable to load experience right now.</p>';console.error(e)}
+async function loadExperience() {
+  const list = $('#experienceList');
+  if (!list) return;
+
+  try {
+    const experience = await getData('experience');
+
+    if (experience.length === 0) {
+      list.innerHTML =
+        '<p class="loading">No experience added yet.</p>';
+      return;
+    }
+
+    list.innerHTML = experience.map(item => `
+      <article class="experience-card">
+
+        <div class="experience-meta">
+          ${escapeHTML(item['Start Date'] || '')}
+          –
+          ${escapeHTML(item['End Date'] || 'Present')}
+        </div>
+
+        <h3>
+          ${escapeHTML(item.Role || '')}
+        </h3>
+
+        <strong>
+          ${escapeHTML(item.Organization || '')}
+        </strong>
+
+        <p>
+          ${escapeHTML(item.Description || '')}
+        </p>
+
+      </article>
+    `).join('');
+
+  } catch (error) {
+    console.error('Experience error:', error);
+
+    list.innerHTML =
+      '<p class="loading">Unable to load experience right now.</p>';
+  }
 }
 
 function init(){setupMenu();setActiveNav();setupModal();const y=$('#year');if(y)y.textContent=new Date().getFullYear();loadProjects();loadSkills();loadExperience();}
