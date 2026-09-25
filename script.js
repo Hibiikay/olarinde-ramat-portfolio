@@ -134,17 +134,6 @@ async function loadSkills(){
   }
 }
 
-  } catch(e) {
-    const grid = $('#skillsGrid');
-
-    if (grid) {
-      grid.innerHTML =
-        '<p class="loading">Unable to load skills right now.</p>';
-    }
-
-    console.error(e);
-  }
-}
 
 async function loadExperience() {
   const list = $('#experienceList');
