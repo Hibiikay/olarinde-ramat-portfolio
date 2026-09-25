@@ -192,10 +192,24 @@ function init() {
     y.textContent = new Date().getFullYear();
   }
 
-  // Load all sections in parallel so one failing cannot block the others
-  Promise.allSettled([
-    loadProjects(),
-    loadSkills(),
-    loadExperience()
-  ]);
+  loadProjects();
+  loadSkills();
+  loadExperience();
 }
+
+// 1. Run immediately if the DOM is already ready
+if (document.readyState === 'interactive' || document.readyState === 'complete') {
+  init();
+} else {
+  // 2. Otherwise run when DOM is parsed
+  document.addEventListener('DOMContentLoaded', init);
+}
+
+// 3. Fallback: Run on window load if DOMContentLoaded was missed
+window.addEventListener('load', () => {
+  const pCount = document.getElementById('projectCount');
+  if (pCount && (pCount.textContent === '0' || pCount.textContent === '')) {
+    loadProjects();
+    loadSkills();
+  }
+});
