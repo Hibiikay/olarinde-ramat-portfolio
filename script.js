@@ -47,27 +47,28 @@ function setActiveNav(){
 
 async function loadProjects() {
   const count = document.getElementById('projectCount');
+  const grid = $('#projectsGrid');
+
+  // If this page does not have a counter or a project grid, exit cleanly
+  if (!count && !grid) return;
+
   try {
     const all = await getData('projects');
-    
+
     if (count) {
       count.textContent = all.length;
     }
 
-    const projects = all.filter(
-      p => !p.Status || String(p.Status).trim().toLowerCase() === 'published'
-    );
-
-    const grid = $('#projectsGrid');
     if (grid) {
+      const projects = all.filter(
+        p => !p.Status || String(p.Status).trim().toLowerCase() === 'published'
+      );
       renderFilters(projects);
       renderProjects(projects, 'all');
     }
   } catch (e) {
     console.error('Projects error:', e);
     if (count) count.textContent = '—';
-
-    const grid = $('#projectsGrid');
     if (grid) {
       grid.innerHTML = '<p class="loading">Unable to load projects right now.</p>';
     }
@@ -105,6 +106,11 @@ function setupModal(){const m=$('#projectModal'),c=$('#closeModal'),o=m?.querySe
 
 async function loadSkills() {
   const count = document.getElementById('skillCount');
+  const grid = $('#skillsGrid');
+
+  // If this page does not have a skill counter or a skills grid, exit cleanly
+  if (!count && !grid) return;
+
   try {
     const skills = await getData('skills');
 
@@ -112,7 +118,6 @@ async function loadSkills() {
       count.textContent = skills.length;
     }
 
-    const grid = $('#skillsGrid');
     if (grid) {
       grid.innerHTML =
         skills.map(s =>
@@ -126,8 +131,6 @@ async function loadSkills() {
   } catch (e) {
     console.error('Skills error:', e);
     if (count) count.textContent = '—';
-
-    const grid = $('#skillsGrid');
     if (grid) {
       grid.innerHTML = '<p class="loading">Unable to load skills right now.</p>';
     }
@@ -189,15 +192,10 @@ function init() {
     y.textContent = new Date().getFullYear();
   }
 
-  // Always trigger the loaders
-  loadProjects();
-  loadSkills();
-  loadExperience();
-}
-
-// Handle both standard loads and cached/deferred DOM loads
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
+  // Load all sections in parallel so one failing cannot block the others
+  Promise.allSettled([
+    loadProjects(),
+    loadSkills(),
+    loadExperience()
+  ]);
 }
