@@ -41,15 +41,16 @@ async function loadProjects(){
   try {
     const all = await getData('projects');
 
+    // Count all projects for the Home page
+    const count = document.getElementById('projectCount');
+    if (count) {
+      count.textContent = all.length;
+    }
+
+    // Only published projects appear on the Projects page
     const projects = all.filter(
       p => !p.Status || String(p.Status).trim().toLowerCase() === 'published'
     );
-
-    // HOME PAGE PROJECT COUNT
-    const count = document.getElementById('projectCount');
-    if (count) {
-      count.textContent = projects.length;
-    }
 
     const grid = $('#projectsGrid');
 
@@ -61,7 +62,6 @@ async function loadProjects(){
   } catch(e) {
     console.error('Projects error:', e);
 
-    // Keep the count from remaining at 0 if the API has a temporary issue
     const count = document.getElementById('projectCount');
     if (count) {
       count.textContent = '—';
@@ -197,6 +197,7 @@ function init() {
   setupModal();
 
   const y = $('#year');
+
   if (y) {
     y.textContent = new Date().getFullYear();
   }
@@ -206,4 +207,4 @@ function init() {
   loadExperience();
 }
 
-init();
+document.addEventListener('DOMContentLoaded', init);
