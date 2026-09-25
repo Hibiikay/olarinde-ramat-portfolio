@@ -7,19 +7,27 @@ function escapeHTML(value='') { const d=document.createElement('div'); d.textCon
 function imageExists(url){ return url && /^https?:\/\//i.test(url); }
 
 async function getData(action) {
-  const res = await fetch(`${API_URL}?action=${action}`);
+  try {
+    const res = await fetch(`${API_URL}?action=${action}`, {
+      method: "GET",
+      redirect: "follow"
+    });
 
-  if (!res.ok) {
-    throw new Error(`API request failed: ${res.status}`);
+    if (!res.ok) {
+      throw new Error(`API HTTP status: ${res.status}`);
+    }
+
+    const json = await res.json();
+
+    if (!json || json.success === false) {
+      throw new Error(json?.error || `API returned unsuccessful for ${action}`);
+    }
+
+    return Array.isArray(json.data) ? json.data : [];
+  } catch (err) {
+    console.error(`Error fetching ${action}:`, err);
+    throw err;
   }
-
-  const json = await res.json();
-
-  if (!json.success) {
-    throw new Error(json.error || "API error");
-  }
-
-  return Array.isArray(json.data) ? json.data : [];
 }
 
 function setupMenu(){
@@ -37,41 +45,31 @@ function setActiveNav(){
   });
 }
 
-async function loadProjects(){
+async function loadProjects() {
+  const count = document.getElementById('projectCount');
   try {
     const all = await getData('projects');
-
-    // Count all projects for the Home page
-    const count = document.getElementById('projectCount');
+    
     if (count) {
       count.textContent = all.length;
     }
 
-    // Only published projects appear on the Projects page
     const projects = all.filter(
       p => !p.Status || String(p.Status).trim().toLowerCase() === 'published'
     );
 
     const grid = $('#projectsGrid');
-
     if (grid) {
       renderFilters(projects);
       renderProjects(projects, 'all');
     }
-
-  } catch(e) {
+  } catch (e) {
     console.error('Projects error:', e);
-
-    const count = document.getElementById('projectCount');
-    if (count) {
-      count.textContent = '—';
-    }
+    if (count) count.textContent = '—';
 
     const grid = $('#projectsGrid');
-
     if (grid) {
-      grid.innerHTML =
-        '<p class="loading">Unable to load projects right now.</p>';
+      grid.innerHTML = '<p class="loading">Unable to load projects right now.</p>';
     }
   }
 }
@@ -105,19 +103,16 @@ function openProject(p){
 }
 function setupModal(){const m=$('#projectModal'),c=$('#closeModal'),o=m?.querySelector('.modal-overlay'); if(!m)return; [c,o].forEach(x=>x?.addEventListener('click',()=>{m.classList.remove('show');m.setAttribute('aria-hidden','true')}));}
 
-async function loadSkills(){
+async function loadSkills() {
+  const count = document.getElementById('skillCount');
   try {
     const skills = await getData('skills');
-
-    // HOME PAGE SKILLS COUNT
-    const count = document.getElementById('skillCount');
 
     if (count) {
       count.textContent = skills.length;
     }
 
     const grid = $('#skillsGrid');
-
     if (grid) {
       grid.innerHTML =
         skills.map(s =>
@@ -128,20 +123,13 @@ async function loadSkills(){
         ).join('') ||
         '<p class="loading">No skills added yet.</p>';
     }
-
-  } catch(e) {
+  } catch (e) {
     console.error('Skills error:', e);
-
-    const count = document.getElementById('skillCount');
-    if (count) {
-      count.textContent = '—';
-    }
+    if (count) count.textContent = '—';
 
     const grid = $('#skillsGrid');
-
     if (grid) {
-      grid.innerHTML =
-        '<p class="loading">Unable to load skills right now.</p>';
+      grid.innerHTML = '<p class="loading">Unable to load skills right now.</p>';
     }
   }
 }
