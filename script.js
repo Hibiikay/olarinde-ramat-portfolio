@@ -37,15 +37,33 @@ function setActiveNav(){
   });
 }
 
-async function loadProjects(){
-  const grid=$('#projectsGrid'); if(!grid) return;
-  try{
-    const all=await getData('projects');
-    const projects=all.filter(p=>!p.Status || String(p.Status).toLowerCase()==='published');
-    const count=$('#projectCount'); if(count) count.textContent=projects.length;
-    renderFilters(projects);
-    renderProjects(projects,'all');
-  }catch(e){ grid.innerHTML='<p class="loading">Unable to load projects right now.</p>'; console.error(e); }
+async function loadProjects() {
+  const grid = $('#projectsGrid');
+  if (!grid) return;
+
+  try {
+    const projects = await getData('projects');
+
+    // Show all projects unless explicitly archived
+    const visibleProjects = projects.filter(project => {
+      const status = String(project.Status || '').trim().toLowerCase();
+      return status !== 'archived';
+    });
+
+    const count = $('#projectCount');
+
+    if (count) {
+      count.textContent = visibleProjects.length;
+    }
+
+    renderFilters(visibleProjects);
+    renderProjects(visibleProjects, 'all');
+
+  } catch (error) {
+    console.error('Projects error:', error);
+    grid.innerHTML =
+      '<p class="loading">Unable to load projects right now.</p>';
+  }
 }
 
 function renderFilters(projects){
