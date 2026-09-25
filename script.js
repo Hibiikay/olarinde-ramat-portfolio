@@ -42,11 +42,14 @@ async function loadProjects(){
     const all = await getData('projects');
 
     const projects = all.filter(
-      p => !p.Status || String(p.Status).toLowerCase() === 'published'
+      p => !p.Status || String(p.Status).trim().toLowerCase() === 'published'
     );
 
-    const count = $('#projectCount');
-    if (count) count.textContent = projects.length;
+    // HOME PAGE PROJECT COUNT
+    const count = document.getElementById('projectCount');
+    if (count) {
+      count.textContent = projects.length;
+    }
 
     const grid = $('#projectsGrid');
 
@@ -56,14 +59,14 @@ async function loadProjects(){
     }
 
   } catch(e) {
+    console.error('Projects error:', e);
+
     const grid = $('#projectsGrid');
 
     if (grid) {
       grid.innerHTML =
         '<p class="loading">Unable to load projects right now.</p>';
     }
-
-    console.error(e);
   }
 }
 
@@ -100,8 +103,11 @@ async function loadSkills(){
   try {
     const skills = await getData('skills');
 
-    const count = $('#skillCount');
-    if (count) count.textContent = skills.length;
+    // HOME PAGE SKILLS COUNT
+    const count = document.getElementById('skillCount');
+    if (count) {
+      count.textContent = skills.length;
+    }
 
     const grid = $('#skillsGrid');
 
@@ -115,6 +121,18 @@ async function loadSkills(){
         ).join('') ||
         '<p class="loading">No skills added yet.</p>';
     }
+
+  } catch(e) {
+    console.error('Skills error:', e);
+
+    const grid = $('#skillsGrid');
+
+    if (grid) {
+      grid.innerHTML =
+        '<p class="loading">Unable to load skills right now.</p>';
+    }
+  }
+}
 
   } catch(e) {
     const grid = $('#skillsGrid');
