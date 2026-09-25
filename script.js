@@ -37,32 +37,33 @@ function setActiveNav(){
   });
 }
 
-async function loadProjects() {
-  const grid = $('#projectsGrid');
-  if (!grid) return;
-
+async function loadProjects(){
   try {
-    const projects = await getData('projects');
+    const all = await getData('projects');
 
-    // Show all projects unless explicitly archived
-    const visibleProjects = projects.filter(project => {
-      const status = String(project.Status || '').trim().toLowerCase();
-      return status !== 'archived';
-    });
+    const projects = all.filter(
+      p => !p.Status || String(p.Status).toLowerCase() === 'published'
+    );
 
     const count = $('#projectCount');
+    if (count) count.textContent = projects.length;
 
-    if (count) {
-      count.textContent = visibleProjects.length;
+    const grid = $('#projectsGrid');
+
+    if (grid) {
+      renderFilters(projects);
+      renderProjects(projects, 'all');
     }
 
-    renderFilters(visibleProjects);
-    renderProjects(visibleProjects, 'all');
+  } catch(e) {
+    const grid = $('#projectsGrid');
 
-  } catch (error) {
-    console.error('Projects error:', error);
-    grid.innerHTML =
-      '<p class="loading">Unable to load projects right now.</p>';
+    if (grid) {
+      grid.innerHTML =
+        '<p class="loading">Unable to load projects right now.</p>';
+    }
+
+    console.error(e);
   }
 }
 
@@ -95,43 +96,35 @@ function openProject(p){
 }
 function setupModal(){const m=$('#projectModal'),c=$('#closeModal'),o=m?.querySelector('.modal-overlay'); if(!m)return; [c,o].forEach(x=>x?.addEventListener('click',()=>{m.classList.remove('show');m.setAttribute('aria-hidden','true')}));}
 
-async function loadSkills() {
-  const grid = $('#skillsGrid');
-  if (!grid) return;
-
+async function loadSkills(){
   try {
     const skills = await getData('skills');
 
     const count = $('#skillCount');
+    if (count) count.textContent = skills.length;
 
-    if (count) {
-      count.textContent = skills.length;
+    const grid = $('#skillsGrid');
+
+    if (grid) {
+      grid.innerHTML =
+        skills.map(s =>
+          `<div class="skill-card">
+            <h3>${escapeHTML(s.Skill || '')}</h3>
+            <p>${escapeHTML(s.Description || s.Category || '')}</p>
+          </div>`
+        ).join('') ||
+        '<p class="loading">No skills added yet.</p>';
     }
 
-    if (skills.length === 0) {
-      grid.innerHTML = '<p class="loading">No skills added yet.</p>';
-      return;
+  } catch(e) {
+    const grid = $('#skillsGrid');
+
+    if (grid) {
+      grid.innerHTML =
+        '<p class="loading">Unable to load skills right now.</p>';
     }
 
-    grid.innerHTML = skills.map(skill => `
-      <div class="skill-card">
-        <h3>${escapeHTML(skill.Skill || '')}</h3>
-
-        <p>
-          ${escapeHTML(
-            skill.Description ||
-            skill.Category ||
-            ''
-          )}
-        </p>
-      </div>
-    `).join('');
-
-  } catch (error) {
-    console.error('Skills error:', error);
-
-    grid.innerHTML =
-      '<p class="loading">Unable to load skills right now.</p>';
+    console.error(e);
   }
 }
 
