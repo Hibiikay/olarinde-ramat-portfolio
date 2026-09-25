@@ -61,6 +61,12 @@ async function loadProjects(){
   } catch(e) {
     console.error('Projects error:', e);
 
+    // Keep the count from remaining at 0 if the API has a temporary issue
+    const count = document.getElementById('projectCount');
+    if (count) {
+      count.textContent = '—';
+    }
+
     const grid = $('#projectsGrid');
 
     if (grid) {
@@ -105,6 +111,7 @@ async function loadSkills(){
 
     // HOME PAGE SKILLS COUNT
     const count = document.getElementById('skillCount');
+
     if (count) {
       count.textContent = skills.length;
     }
@@ -125,6 +132,11 @@ async function loadSkills(){
   } catch(e) {
     console.error('Skills error:', e);
 
+    const count = document.getElementById('skillCount');
+    if (count) {
+      count.textContent = '—';
+    }
+
     const grid = $('#skillsGrid');
 
     if (grid) {
@@ -133,7 +145,6 @@ async function loadSkills(){
     }
   }
 }
-
 
 async function loadExperience() {
   const list = $('#experienceList');
@@ -180,5 +191,17 @@ async function loadExperience() {
   }
 }
 
-function init(){setupMenu();setActiveNav();setupModal();const y=$('#year');if(y)y.textContent=new Date().getFullYear();loadProjects();loadSkills();loadExperience();}
-document.addEventListener('DOMContentLoaded',init);
+function init() {
+  setupMenu();
+  setActiveNav();
+  setupModal();
+
+  const y = $('#year');
+  if (y) {
+    y.textContent = new Date().getFullYear();
+  }
+
+  loadProjects();
+  loadSkills();
+  loadExperience();
+}
